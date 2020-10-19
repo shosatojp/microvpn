@@ -19,7 +19,7 @@ int main() {
     // TUN仮想デバイスディスクリプタ(tunserverを希望)
     char tunname[IFNAMSIZ] = "tunserver";
     int tunfd = tun_alloc(tunname);
-    printf("tun = '%s (%d)'\n", tunname, tunfd);
+    printf("tun = %s (%d)\n", tunname, tunfd);
 
     // 外部コマンドで仮想デバイスにIPアドレスを設定&リンクアップ&ルーティング
     char command[256];
@@ -98,7 +98,7 @@ int main() {
             if (e->data.fd == sockfd && e->events & EPOLLIN) {
                 // クライアントから受信
                 int datalen;
-                if ((datalen = read(sockfd, data, sizeof(data))) < 0) {
+                if ((datalen = read(sockfd, data, sizeof(data))) <= 0) {
                     perror("recv from client");
                 } else {
                     // インターネットに送信
@@ -114,7 +114,7 @@ int main() {
             } else if (e->data.fd == tunfd && e->events & EPOLLIN) {
                 // インターネットからパケット受信
                 int datalen;
-                if ((datalen = read(tunfd, data, sizeof(data))) < 0) {
+                if ((datalen = read(tunfd, data, sizeof(data))) <= 0) {
                     perror("read tunfd");
                 } else {
                     // クライアントに送信

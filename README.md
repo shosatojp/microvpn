@@ -48,7 +48,7 @@ sudo iptables -A FORWARD -i eth0 -o tunserver -d 11.8.0.0/24 -j ACCEPT
 
 ```sh
 # (1) 仮想デバイスにIPアドレスを割り当てる
-sudo ip addr add 11.8.0.5 dev tunclient
+sudo ip addr add 11.8.0.2 dev tunclient
 # (2) 仮想デバイスをリンクアップさせる
 sudo ip link set tunclient up
 # (3) VPNサーバへは直接接続するようにする

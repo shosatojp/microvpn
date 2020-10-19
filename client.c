@@ -22,11 +22,11 @@ int main() {
     // TUN仮想デバイスディスクリプタ(tunclientを希望)
     char tunname[IFNAMSIZ] = "tunclient";
     int tunfd = tun_alloc(tunname);
-    printf("tun = '%s (%d)'\n", tunname, tunfd);
+    printf("tun = %s (%d)\n", tunname, tunfd);
 
     // 外部コマンドで仮想デバイスにIPアドレスを設定＆リンクアップ
     char command[256];
-    sprintf(command, "ip addr add 11.8.0.5 dev %s", tunname);
+    sprintf(command, "ip addr add 11.8.0.2 dev %s", tunname);
     system(command);
     sprintf(command, "ip link set %s up", tunname);
     system(command);
@@ -74,12 +74,12 @@ int main() {
 
     struct epoll_event events_list[max_events];
     {  // アプリケーションからの受信イベントを登録
-        struct epoll_event ev = {.events = EPOLLIN, .data.fd = tunfd};
-        if (epoll_ctl(epollfd, EPOLL_CTL_ADD, tunfd, &ev) < 0) perror("epoll_ctl()");
+        struct epoll_event e = {.events = EPOLLIN, .data.fd = tunfd};
+        if (epoll_ctl(epollfd, EPOLL_CTL_ADD, tunfd, &e) < 0) perror("epoll_ctl()");
     }
     {  // サーバからの受信イベントを登録
-        struct epoll_event ev = {.events = EPOLLIN, .data.fd = sockfd};
-        if (epoll_ctl(epollfd, EPOLL_CTL_ADD, sockfd, &ev) < 0) perror("epoll_ctl()");
+        struct epoll_event e = {.events = EPOLLIN, .data.fd = sockfd};
+        if (epoll_ctl(epollfd, EPOLL_CTL_ADD, sockfd, &e) < 0) perror("epoll_ctl()");
     }
 
     const int bufsize = UINT16_MAX;
@@ -97,7 +97,7 @@ int main() {
             if (e->data.fd == sockfd && e->events & EPOLLIN) {
                 // サーバからデータ受信
                 int datalen;
-                if ((datalen = read(sockfd, data, sizeof(data))) < 0) {
+                if ((datalen = read(sockfd, data, sizeof(data))) <= 0) {
                     perror("read sockfd");
                 } else {
                     // アプリケーションに送信
@@ -107,7 +107,7 @@ int main() {
             } else if (e->data.fd == tunfd && e->events & EPOLLIN) {
                 // アプリケーションから受信
                 int datalen;
-                if ((datalen = read(tunfd, data, sizeof(data))) < 0) {
+                if ((datalen = read(tunfd, data, sizeof(data))) <= 0) {
                     perror("read tunfd");
                 } else {
                     // サーバに送信
