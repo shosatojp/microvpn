@@ -34,7 +34,10 @@ int init_raw_ip_socket(int domain) {
     }
     // IP_HDRINCL: IPヘッダも自分で制御する
     int on = 1;
-    if (setsockopt(sockfd, IPPROTO_IP, IP_HDRINCL, &on, sizeof(on)) < 0) {
+    if (setsockopt(sockfd,
+                   domain == AF_INET6 ? IPPROTO_IPV6 : IPPROTO_IP,
+                   domain == AF_INET6 ? IPV6_HDRINCL : IP_HDRINCL,
+                   &on, sizeof(on)) < 0) {
         perror("setsockopt()");
     }
     return sockfd;
