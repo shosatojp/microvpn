@@ -94,3 +94,5 @@ sudo -E ./client.out
 ```sh
 sudo traceroute -i tunclient 1.1.1.1 -4 -I -n
 ```
+
+sudo ip route add ::/0 dev tunclient

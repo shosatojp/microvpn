@@ -25,12 +25,12 @@ unsigned short ipv4_checksum(unsigned short *buf, int bytes) {
     return ~sum;
 }
 
-int init_raw_ipv4_socket() {
-    // IPv4の生のデータを扱うsocket
+int init_raw_ip_socket(int domain) {
+    // IPの生のデータを扱うsocket
     int sockfd;
-    if ((sockfd = socket(AF_INET, SOCK_RAW, IPPROTO_RAW)) < 0) {
+    if ((sockfd = socket(domain, SOCK_RAW, IPPROTO_RAW)) < 0) {
         perror("socket()");
-        exit(1);
+        return sockfd;
     }
     // IP_HDRINCL: IPヘッダも自分で制御する
     int on = 1;
@@ -42,25 +42,26 @@ int init_raw_ipv4_socket() {
 
 // 希望する仮想デバイス名を入れる
 int tun_alloc(char *dev) {
-    struct ifreq ifr = {};
+    // IFF_TUN: TUNを使う
+    // IFF_NO_PI: 付加情報をつけないで生のパケットを読み書きする
+    struct ifreq ifr = {
+        .ifr_flags = IFF_TUN | IFF_NO_PI,
+    };
     int fd, err;
 
     if ((fd = open("/dev/net/tun", O_RDWR)) < 0) {
-        printf("Error: open()");
-        exit(1);
+        printf("open()");
+        return fd;
     }
 
-    // IFF_TUN: TUNを使う
-    // IFF_NO_PI: 付加情報をつけないで生のパケットを読み書きする
-    ifr.ifr_flags = IFF_TUN | IFF_NO_PI;
-    if (*dev) {
+    if (dev && *dev) {
         strncpy(ifr.ifr_ifrn.ifrn_name, dev, IFNAMSIZ);
     }
 
     if ((err = ioctl(fd, TUNSETIFF, (void *)&ifr)) < 0) {
         close(fd);
         perror("ioctl()");
-        exit(1);
+        return fd;
     }
     strncpy(dev, ifr.ifr_ifrn.ifrn_name, IFNAMSIZ);
     return fd;
@@ -76,4 +77,15 @@ void print_sdaddr(struct iphdr *hdr) {
            (hdr->daddr & 0x0000ff00) >> 8,
            (hdr->daddr & 0x00ff0000) >> 16,
            (hdr->daddr & 0xff000000) >> 24);
+}
+
+void print_sdaddr6(struct ip6_hdr *hdr) {
+    char buf[100];
+    char *ptr = buf;
+    inet_ntop(AF_INET6, &hdr->ip6_src, ptr, 40);
+    while (*ptr) ptr++;
+    sprintf(ptr, " -> ");
+    while (*ptr) ptr++;
+    inet_ntop(AF_INET6, &hdr->ip6_dst, ptr, 40);
+    puts(buf);
 }

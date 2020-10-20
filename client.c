@@ -21,7 +21,9 @@
 int main() {
     // TUN仮想デバイスディスクリプタ(tunclientを希望)
     char tunname[IFNAMSIZ] = "tunclient";
-    int tunfd = tun_alloc(tunname);
+    int tunfd;
+    if ((tunfd = tun_alloc(tunname)) < 0)
+        exit(1);
     printf("tun = %s (%d)\n", tunname, tunfd);
 
     // 外部コマンドで仮想デバイスにIPアドレスを設定＆リンクアップ
@@ -110,6 +112,19 @@ int main() {
                 if ((datalen = read(tunfd, data, sizeof(data))) <= 0) {
                     perror("read tunfd");
                 } else {
+                    int ipver = (data[0] & 0xf0) >> 4;
+
+                    printf("%d\n", ipver);
+
+                    switch (ipver) {
+                        case 4:
+                            print_sdaddr((struct iphdr *)data);
+                            break;
+                        case 6:
+                            print_sdaddr6((struct ip6_hdr *)data);
+                            break;
+                    }
+
                     // サーバに送信
                     if (sendto(sockfd, data, datalen, 0,
                                (struct sockaddr *)&server_addr,

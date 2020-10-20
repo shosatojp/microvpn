@@ -4,6 +4,7 @@
 #include <linux/if_tun.h>
 #include <netinet/in.h>
 #include <netinet/ip.h>
+#include <netinet/ip6.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -18,7 +19,9 @@
 int main() {
     // TUN仮想デバイスディスクリプタ(tunserverを希望)
     char tunname[IFNAMSIZ] = "tunserver";
-    int tunfd = tun_alloc(tunname);
+    int tunfd;
+    if ((tunfd = tun_alloc(tunname)) < 0)
+        exit(1);
     printf("tun = %s (%d)\n", tunname, tunfd);
 
     // 外部コマンドで仮想デバイスにIPアドレスを設定&リンクアップ&ルーティング
@@ -31,7 +34,8 @@ int main() {
     system(command);
 
     // インターネットへの送信用RAW IP socket
-    int eth = init_raw_ipv4_socket();
+    int eth4 = init_raw_ip_socket(AF_INET);
+    int eth6 = init_raw_ip_socket(AF_INET6);
 
     // クライアントのIPアドレスを環境変数から取得
     char *_client_ipaddr;
@@ -102,13 +106,31 @@ int main() {
                     perror("recv from client");
                 } else {
                     // インターネットに送信
-                    struct sockaddr_in to = {
-                        .sin_family = AF_INET,
-                        .sin_addr.s_addr = ((struct iphdr *)data)->daddr,
-                    };
-                    if (sendto(eth, data, datalen, 0,
-                               (struct sockaddr *)&to, sizeof(to)) < 0) {
-                        perror("sendto internet");
+                    int ipver = (data[0] & 0xf0) >> 4;
+                    switch (ipver) {
+                        case 4: {
+                            struct sockaddr_in to4;
+                            to4.sin_family = AF_INET;
+                            to4.sin_addr.s_addr = ((struct iphdr *)data)->daddr;
+                            if (sendto(eth4, data, datalen, 0,
+                                       (struct sockaddr *)&to4, sizeof(to4)) < 0) {
+                                perror("sendto internet");
+                            }
+                        } break;
+                        case 6: {
+                            struct sockaddr_in6 to6;
+                            to6.sin6_family = AF_INET6;
+                            memcpy(&to6.sin6_addr,
+                                   &((struct ip6_hdr *)data)->ip6_dst,
+                                   sizeof(struct in6_addr));
+                            if (sendto(eth6, data, datalen, 0,
+                                       (struct sockaddr *)&to6, sizeof(to6)) < 0) {
+                                perror("sendto internet");
+                            }
+                        } break;
+                        default:
+                            puts("invalid ip packet");
+                            break;
                     }
                 }
             } else if (e->data.fd == tunfd && e->events & EPOLLIN) {
