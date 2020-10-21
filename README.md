@@ -14,11 +14,11 @@
 
 ```sh
 # (1) 仮想デバイスにIPアドレスを割り当てる
-ip addr add 11.8.0.1 dev tunserver
+ip addr add 10.0.0.1 dev tunserver
 # (2) 仮想デバイスをリンクアップさせる
 ip link set tunserver up
 # (3) VPN内宛のパケットを仮想デバイスに向ける
-ip route add 11.8.0.0/24 dev tunserver
+ip route add 10.0.0.0/24 dev tunserver
 ```
 
 * カーネルパラメータでIPフォワードを許可
@@ -33,12 +33,12 @@ net.ipv4.ip_forward=1
 
 ```sh
 # VPNから出ていく通信についてIPマスカレードを適用する
-sudo iptables -t nat -A POSTROUTING -s 11.8.0.0/24 -o eth0 -j MASQUERADE
+sudo iptables -t nat -A POSTROUTING -s 10.0.0.0/24 -o eth0 -j MASQUERADE
 # VPNサーバへ入るUDPパケットを許可する
 sudo iptables -A INPUT -p udp --dport 1195 -j ACCEPT
 # インターネットからVPNに入る通信が仮想デバイスに行くのを許可する
 # ルーティングの(3)に対応
-sudo iptables -A FORWARD -i eth0 -o tunserver -d 11.8.0.0/24 -j ACCEPT
+sudo iptables -A FORWARD -i eth0 -o tunserver -d 10.0.0.0/24 -j ACCEPT
 ```
 
 
@@ -48,7 +48,7 @@ sudo iptables -A FORWARD -i eth0 -o tunserver -d 11.8.0.0/24 -j ACCEPT
 
 ```sh
 # (1) 仮想デバイスにIPアドレスを割り当てる
-sudo ip addr add 11.8.0.2 dev tunclient
+sudo ip addr add 10.0.0.2 dev tunclient
 # (2) 仮想デバイスをリンクアップさせる
 sudo ip link set tunclient up
 # (3) VPNサーバへは直接接続するようにする

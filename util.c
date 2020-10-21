@@ -46,8 +46,8 @@ int tun_alloc(char *dev) {
     int fd, err;
 
     if ((fd = open("/dev/net/tun", O_RDWR)) < 0) {
-        printf("Error: open()");
-        exit(1);
+        printf("open()");
+        return fd;
     }
 
     // IFF_TUN: TUNを使う
@@ -60,7 +60,7 @@ int tun_alloc(char *dev) {
     if ((err = ioctl(fd, TUNSETIFF, (void *)&ifr)) < 0) {
         close(fd);
         perror("ioctl()");
-        exit(1);
+        return err;
     }
     strncpy(dev, ifr.ifr_ifrn.ifrn_name, IFNAMSIZ);
     return fd;

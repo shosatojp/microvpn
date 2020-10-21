@@ -21,12 +21,15 @@
 int main() {
     // TUN仮想デバイスディスクリプタ(tunclientを希望)
     char tunname[IFNAMSIZ] = "tunclient";
-    int tunfd = tun_alloc(tunname);
+    int tunfd;
+    if ((tunfd = tun_alloc(tunname)) < 0) {
+        exit(1);
+    }
     printf("tun = %s (%d)\n", tunname, tunfd);
 
     // 外部コマンドで仮想デバイスにIPアドレスを設定＆リンクアップ
     char command[256];
-    sprintf(command, "ip addr add 11.8.0.2 dev %s", tunname);
+    sprintf(command, "ip addr add 10.0.0.2 dev %s", tunname);
     system(command);
     sprintf(command, "ip link set %s up", tunname);
     system(command);
