@@ -57,7 +57,7 @@ int tun_alloc(char *dev) {
         return fd;
     }
 
-    if (dev && *dev) {
+    if (*dev) {
         strncpy(ifr.ifr_ifrn.ifrn_name, dev, IFNAMSIZ);
     }
 

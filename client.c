@@ -30,6 +30,8 @@ int main() {
     char command[256];
     sprintf(command, "ip addr add 11.8.0.2 dev %s", tunname);
     system(command);
+    sprintf(command, "ip addr add 8::2 dev %s", tunname);
+    system(command);
     sprintf(command, "ip link set %s up", tunname);
     system(command);
 

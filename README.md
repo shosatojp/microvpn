@@ -55,6 +55,7 @@ sudo ip link set tunclient up
 sudo ip route add 7.256.22.2 via 192.168.0.1 dev eno1
 # (4) すべての宛先への通信を仮想デバイスに向ける
 sudo ip route add 0.0.0.0/0 dev tunclient
+sudo ip route add ::/0 dev tunclient
 ```
 
 * カーネルパラメータでIPフォワードを許可
