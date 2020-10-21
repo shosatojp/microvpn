@@ -103,6 +103,7 @@ int main() {
                 if ((datalen = read(sockfd, data, sizeof(data))) <= 0) {
                     perror("read sockfd");
                 } else {
+                    print_sdaddr((struct iphdr *)data);
                     // アプリケーションに送信
                     if (write(tunfd, data, datalen) < 0)
                         perror("write tunfd");
@@ -113,6 +114,7 @@ int main() {
                 if ((datalen = read(tunfd, data, sizeof(data))) <= 0) {
                     perror("read tunfd");
                 } else {
+                    print_sdaddr((struct iphdr *)data);
                     // サーバに送信
                     if (sendto(sockfd, data, datalen, 0,
                                (struct sockaddr *)&server_addr,

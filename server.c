@@ -109,6 +109,7 @@ int main() {
                         .sin_family = AF_INET,
                         .sin_addr.s_addr = ((struct iphdr *)data)->daddr,
                     };
+                    print_sdaddr((struct iphdr *)data);
                     if (sendto(eth, data, datalen, 0,
                                (struct sockaddr *)&to, sizeof(to)) < 0) {
                         perror("sendto internet");
@@ -121,6 +122,7 @@ int main() {
                     perror("read tunfd");
                 } else {
                     // クライアントに送信
+                    print_sdaddr((struct iphdr *)data);
                     if (sendto(sockfd, data, datalen, 0,
                                (struct sockaddr *)&client_addr,
                                sizeof(client_addr)) < 0) {
