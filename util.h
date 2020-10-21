@@ -17,7 +17,7 @@
 
 void printhex(char *src, size_t size);
 unsigned short ipv4_checksum(unsigned short *buf, int bytes);
-int init_raw_ipv4_socket();
+int init_raw_ip_socket();
 int tun_alloc(char *dev);
 void print_sdaddr(struct iphdr *hdr);
 void print_sdaddr6(struct ip6_hdr *hdr);
