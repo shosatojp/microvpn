@@ -14,17 +14,6 @@ void printhex(char *src, size_t size) {
     putc('\n', stdout);
 }
 
-unsigned short ipv4_checksum(unsigned short *buf, int bytes) {
-    unsigned int sum = 0;
-    while (bytes) {
-        sum += *buf++;
-        bytes -= 2;
-    }
-    sum = (sum & 0xffff) + (sum >> 16);
-    sum = (sum & 0xffff) + (sum >> 16);
-    return ~sum;
-}
-
 int init_raw_ipv4_socket() {
     // IPv4の生のデータを扱うsocket
     int sockfd;
